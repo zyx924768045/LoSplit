@@ -1,4 +1,4 @@
-# LoSplit: Loss-Guided Dynamic Split for Training-Time Defense Against Graph Backdoor Attacks[NeurIPS 25 Poster]
+# LoSplit: Loss-Guided Dynamic Split for Training-Time Defense Against Graph Backdoor Attacks [NeurIPS 25 Poster]
 This repository provides the implementation of **LoSplit**, a novel defense in graph for mitigating graph backdoor attacks. Our method supports various attack settings, including **GTA**, **UGBA**, **DPGBA**, and **SPEAR**.
 
 ## 🚀 Reproducing Results
@@ -13,4 +13,4 @@ bash defense.sh [--device_id=]
 
 - if you want to specify the device for a specific task,you should modify the device_id in the `defense.sh` file.
 
-Project is built upon [SPEAR](https://github.com/yhDing/SPEAR). 
+Project is built upon [SPEAR](https://github.com/yhDing/SPEAR)
