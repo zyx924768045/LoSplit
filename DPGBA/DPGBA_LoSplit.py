@@ -89,7 +89,7 @@ parser.add_argument('--split_lr', type=float, default=0.03,
                     help='split learning rate.')
 parser.add_argument('--split_epoch', type=int, default=10,
                     help="split target nodes")
-parser.add_argument('--α', type=float, default=1,
+parser.add_argument('--gamma', type=float, default=1,
                     help='Decoupling trade off')
 
 #Attack Setting
@@ -313,7 +313,7 @@ torch.save(data_to_save, args.pre_train_param)
 
 
 test_model = model_construct(args,args.test_model,data,device).to(device) 
-test_model.fit(poison_x,poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val,train_iters=200,verbose=False, attach=idx_poison_found, clean=idx_clean_found, finetune2=True, target_label=target_label, alpha=args.α)
+test_model.fit(poison_x,poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val,train_iters=200,verbose=False, attach=idx_poison_found, clean=idx_clean_found, finetune2=True, target_label=target_label, alpha=args.gamma)
 
 test_model.eval()
 
