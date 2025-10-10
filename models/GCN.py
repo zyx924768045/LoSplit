@@ -103,7 +103,7 @@ class GCN(nn.Module):
         return x
 
 
-    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, attach=None, clean=None, target_label=0, num_attach=40, alpha=0.7):
+    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, attach=None, clean=None, target_label=0, num_attach=40, gamma=0.7):
         """Train the gcn model, when idx_val is not None, pick the best model according to the validation loss.
         Parameters
         ----------
@@ -135,7 +135,7 @@ class GCN(nn.Module):
             if finetune1==True:
                 self.finetune1(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose)
             elif finetune2 == True:
-                self.finetune2(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label, alpha)
+                self.finetune2(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label, gamma)
             elif finetune3 == True:
                 self.finetune3(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label)
             else:
@@ -172,7 +172,7 @@ class GCN(nn.Module):
         self.output = output
     
     #LoSplit Finetune
-    def finetune2(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label, alpha):
+    def finetune2(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label, gamma):
         num_classes=labels.max().item() + 1
         mask = torch.zeros_like(labels, dtype=torch.bool)
         mask[idx_attach] = 1  
@@ -191,7 +191,7 @@ class GCN(nn.Module):
             loss_attach_decouple =  F.nll_loss(output[idx_attach], reshuffle_labels[idx_attach], reduction='none')
             loss_clean = F.nll_loss(output[idx_clean], labels[idx_clean], reduction='none')
 
-            loss_attach = alpha * loss_attach_decouple + (1-alpha) * loss_attach_forget
+            loss_attach = gamma * loss_attach_decouple + (1-gamma) * loss_attach_forget
 
             loss_train = torch.cat([loss_clean, loss_attach])
             loss_train = torch.mean(loss_train)
