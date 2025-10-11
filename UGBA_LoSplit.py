@@ -338,15 +338,15 @@ data_to_save = {
 torch.save(data_to_save, args.pre_train_param)
 
 
-test_model = model_construct(args, args.test_model, data, device).to(device)
-test_model.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune2=True, attach=idx_poison_found, clean=idx_clean_found,target_label=target_label, alpha=args.gamma)
+test_model1 = model_construct(args, args.test_model, data, device).to(device)
+test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune2=True, attach=idx_poison_found, clean=idx_clean_found,target_label=target_label, alpha=args.gamma)
 
 induct_edge_index = torch.cat([poison_edge_index, mask_edge_index], dim=1)
 induct_edge_weights = torch.cat([
     poison_edge_weights,
     torch.ones([mask_edge_index.shape[1]], dtype=torch.float, device=device)
 ])
-clean_acc = test_model.test(poison_x, induct_edge_index, induct_edge_weights, data.y, idx_clean_test)
+clean_acc = test_model1.test(poison_x, induct_edge_index, induct_edge_weights, data.y, idx_clean_test)
 
 induct_x, induct_edge_index, induct_edge_weights = model.inject_trigger(
     idx_atk, poison_x, induct_edge_index, induct_edge_weights, device
@@ -355,7 +355,7 @@ induct_x, induct_edge_index, induct_edge_weights = (
     induct_x.clone().detach(), induct_edge_index.clone().detach(), induct_edge_weights.clone().detach()
 )
 
-output = test_model(induct_x, induct_edge_index, induct_edge_weights)
+output = test_model1(induct_x, induct_edge_index, induct_edge_weights)
 flip_idx_atk = idx_atk[(data.y[idx_atk] != args.target_class).nonzero().flatten()]
 flip_asr = (output.argmax(dim=1)[flip_idx_atk] == args.target_class).detach().cpu().numpy().mean()
 
