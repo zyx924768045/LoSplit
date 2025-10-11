@@ -156,8 +156,8 @@ class GCN(nn.Module):
         
         optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         
-        for epoch in range(10):
-            for step in range(1): 
+        for epoch in range(50):
+            for step in range(100): 
                 self.train()
                 optimizer.zero_grad()
                 
@@ -169,7 +169,7 @@ class GCN(nn.Module):
                 max_loss.backward()
                 optimizer.step()
             
-            for step in range(200): 
+            for step in range(400): 
                 self.train()
                 optimizer.zero_grad()
                 
@@ -186,6 +186,23 @@ class GCN(nn.Module):
         
         self.eval()
         output = self.forward(self.features, self.edge_index, self.edge_weight)
+        self.output = output
+    
+    #Restore Original Label
+    def finetune5(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label, teacher_model, clean_labels):
+        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        for i in range(train_iters): 
+            self.train()
+            optimizer.zero_grad()
+            output, x = self.forward(self.features, self.edge_index, self.edge_weight)
+
+            loss_train = F.nll_loss(output[idx_train], labels[idx_train])
+            
+            loss_train = torch.mean(loss_train)
+            loss_train.backward()
+            optimizer.step()
+
+        self.eval()
         self.output = output
 
     
