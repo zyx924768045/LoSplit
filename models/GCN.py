@@ -103,7 +103,7 @@ class GCN(nn.Module):
         return x
 
 
-    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, attach=None, clean=None, target_label=0, num_attach=40, gamma=0.7):
+    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, attach=None, clean=None, target_label=0, num_attach=40, gamma=0.7, teacher_model=None):
         """Train the gcn model, when idx_val is not None, pick the best model according to the validation loss.
         Parameters
         ----------
@@ -138,6 +138,8 @@ class GCN(nn.Module):
                 self.finetune2(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label, gamma)
             elif finetune3 == True:
                 self.finetune3(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label)
+            elif finetune4 == True:
+                self.finetune4(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label, teacher_model)
             else:
                 self._train_with_val(self.labels, idx_train, idx_val, train_iters, verbose, num_attach)
         # torch.cuda.empty_cache()
@@ -215,6 +217,51 @@ class GCN(nn.Module):
             loss_train.backward()
             optimizer.step()
         self.eval()
+        self.output = output
+    
+    #Finetune with SCRUB Unlearning
+    def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label, teacher_model):
+        """
+        SCRUB unlearning
+        """
+        with torch.no_grad():
+            teacher_model.eval()
+            teacher_output = teacher_model.forward(self.features, self.edge_index, self.edge_weight)
+            teacher_probs_clean = F.softmax(teacher_output[idx_clean], dim=1)
+            teacher_probs_attach = F.softmax(teacher_output[idx_attach], dim=1)
+        
+        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        
+        for epoch in range(10):
+            for step in range(1): 
+                self.train()
+                optimizer.zero_grad()
+                
+                student_output = self.forward(self.features, self.edge_index, self.edge_weight)
+                student_probs_attach = F.log_softmax(student_output[idx_attach], dim=1)
+                
+                max_loss = -F.kl_div(student_probs_attach, teacher_probs_attach, reduction='batchmean')
+                
+                max_loss.backward()
+                optimizer.step()
+            
+            for step in range(200): 
+                self.train()
+                optimizer.zero_grad()
+                
+                student_output = self.forward(self.features, self.edge_index, self.edge_weight)
+                student_probs_clean = F.log_softmax(student_output[idx_clean], dim=1)
+
+                kl_clean = F.kl_div(student_probs_clean, teacher_probs_clean, reduction='batchmean')
+                task_loss = F.nll_loss(student_output[idx_clean], labels[idx_clean])
+                
+                min_loss = 0.5*kl_clean + 0.5*task_loss
+                
+                min_loss.backward()
+                optimizer.step()
+        
+        self.eval()
+        output = self.forward(self.features, self.edge_index, self.edge_weight)
         self.output = output
     
     
