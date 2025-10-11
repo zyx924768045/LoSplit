@@ -313,7 +313,7 @@ torch.save(data_to_save, args.pre_train_param)
 
 
 test_model = model_construct(args,args.test_model,data,device).to(device) 
-test_model.fit(poison_x,poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val,train_iters=200,verbose=False, attach=idx_poison_found, clean=idx_clean_found, finetune2=True, target_label=target_label, alpha=args.gamma)
+test_model.fit(poison_x,poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val,train_iters=200,verbose=False, attach=idx_poison_found, clean=idx_clean_found, finetune2=True, target_label=target_label, gamma=args.gamma)
 
 test_model.eval()
 
