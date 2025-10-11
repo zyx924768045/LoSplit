@@ -150,7 +150,7 @@ class GCN(nn.Module):
         """
         with torch.no_grad():
             teacher_model.eval()
-            teacher_output = teacher_model.forward(self.features, self.edge_index, self.edge_weight)
+            teacher_output, x = teacher_model.forward(self.features, self.edge_index, self.edge_weight)
             teacher_probs_clean = F.softmax(teacher_output[idx_clean], dim=1)
             teacher_probs_attach = F.softmax(teacher_output[idx_attach], dim=1)
         

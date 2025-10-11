@@ -232,7 +232,7 @@ class GCN(nn.Module):
         
         optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         
-        for epoch in range(10):
+        for epoch in range(50):
             for step in range(1): 
                 self.train()
                 optimizer.zero_grad()
