@@ -103,7 +103,7 @@ class GCN(nn.Module):
         return x
 
 
-    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, attach=None, clean=None, target_label=0, num_attach=40, gamma=0.7, teacher_model=None):
+    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, finetune5=False, finetune6=False, attach=None, clean=None, target_label=0, num_attach=40, gamma=0.7, teacher_model=None, clean_labels=None, attach_feature=None):
         """Train the gcn model, when idx_val is not None, pick the best model according to the validation loss.
         Parameters
         ----------
@@ -137,9 +137,13 @@ class GCN(nn.Module):
             elif finetune2 == True:
                 self.finetune2(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label, gamma)
             elif finetune3 == True:
-                self.finetune3(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label)
+                self.finetune3(self.labels, idx_train, idx_val, clean, train_iters, verbose)
             elif finetune4 == True:
-                self.finetune4(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label, teacher_model)
+                self.finetune4(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, teacher_model)
+            elif finetune5 == True:
+                self.finetune5(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, clean_labels)
+            elif finetune6 == True:
+                self.finetune6(self.labels, idx_train, idx_val, attach, train_iters, verbose, attach_feature)
             else:
                 self._train_with_val(self.labels, idx_train, idx_val, train_iters, verbose, num_attach)
         # torch.cuda.empty_cache()
@@ -203,24 +207,22 @@ class GCN(nn.Module):
         self.eval()
         self.output = output
     
-    #Only use Clean nodes 
-    def finetune3(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label):
+    #Discarding Target Nodes/Only use Clean nodes 
+    def finetune3(self, labels, idx_train, idx_val, idx_clean, train_iters, verbose):
         optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         for i in range(train_iters):
             self.train()
             optimizer.zero_grad()
             output = self.forward(self.features, self.edge_index, self.edge_weight)
 
-            loss_train = F.nll_loss(output[idx_clean], labels[idx_clean], reduction='none')
-            # loss_train = self.sce(output[idx_train], labels[idx_train])
-            loss_train = torch.mean(loss_train)
+            loss_train = F.nll_loss(output[idx_clean], labels[idx_clean])
             loss_train.backward()
             optimizer.step()
         self.eval()
         self.output = output
     
-    #Finetune with SCRUB Unlearning
-    def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label, teacher_model):
+    #SCRUB Unlearning
+    def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, teacher_model):
         """
         SCRUB unlearning
         """
@@ -232,7 +234,7 @@ class GCN(nn.Module):
         
         optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         
-        for epoch in range(50):
+        for epoch in range(10):
             for step in range(1): 
                 self.train()
                 optimizer.zero_grad()
@@ -245,7 +247,7 @@ class GCN(nn.Module):
                 max_loss.backward()
                 optimizer.step()
             
-            for step in range(200): 
+            for step in range(800): 
                 self.train()
                 optimizer.zero_grad()
                 
@@ -262,6 +264,37 @@ class GCN(nn.Module):
         
         self.eval()
         output = self.forward(self.features, self.edge_index, self.edge_weight)
+        self.output = output
+    
+    #Restore Original Label
+    def finetune5(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, clean_labels):
+        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        for i in range(train_iters): 
+            self.train()
+            optimizer.zero_grad()
+            output= self.forward(self.features, self.edge_index, self.edge_weight)
+
+            loss_train = F.nll_loss(output[idx_train], clean_labels[idx_train])
+            loss_train.backward()
+            optimizer.step()
+
+        self.eval()
+        self.output = output
+
+    #Feature Reinitialization
+    def finetune6(self, labels, idx_train, idx_attach, idx_val, train_iters, verbose, attach_feature):
+        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        for i in range(train_iters): 
+            self.train()
+            optimizer.zero_grad()
+            output= self.forward(attach_feature, self.edge_index, self.edge_weight)
+
+
+            loss_train = F.nll_loss(output[idx_train], labels[idx_train])
+            loss_train.backward()
+            optimizer.step()
+
+        self.eval()
         self.output = output
     
     
