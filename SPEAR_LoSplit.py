@@ -413,5 +413,5 @@ print(f"FPR: {fpr:.4f}")
 # import os
 # df2 = pd.DataFrame(results_stage2).round(4)
 
-# output_file = f"GTA_{args.dataset}_γ.csv"
+# output_file = f"SPEAR_{args.dataset}_γ.csv"
 # df2.to_csv(output_file, mode='a', index=False, header=not os.path.exists(output_file))
