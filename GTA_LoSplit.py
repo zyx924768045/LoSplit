@@ -378,7 +378,7 @@ print(f"FPR: {fpr:.4f}")
 
 # df = pd.DataFrame([results_stage1])
 
-# output_file = f"SPEAR_{args.dataset}_TS_ηS.csv"
+# output_file = f"GTA_{args.dataset}_TS_ηS.csv"
 # df.to_csv(output_file, mode='a', index=False, header=not os.path.exists(output_file))
 
 
