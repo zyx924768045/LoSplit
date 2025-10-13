@@ -142,7 +142,7 @@ class GCN(nn.Module):
         self.eval()
         self.output = output
     
-    #Finetune with SCRUB Unlearning
+    #SCRUB Unlearning
     def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label, teacher_model):
         """
         SCRUB unlearning
