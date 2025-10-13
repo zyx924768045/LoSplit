@@ -313,12 +313,10 @@ induct_x, induct_edge_index,induct_edge_weights = induct_x.cpu(), induct_edge_in
 output = output.cpu()
 
 
-###LoSplit Defense###
+##LoSplit Defense###
 LoSplit= model_construct(args,'LoSplit',data,device, split_lr=args.split_lr).to(device) 
 poison_found, clean_found, deltas, target_labels = LoSplit.fit(poison_x,poison_edge_index, poison_edge_weights, poison_labels, known_nodes, idx_val,train_iters=args.epochs,verbose=False, split_epoch=args.split_epoch, num_attach=len(idx_attach))
 
-
-# find optimal split epoch
 best_delta = max(deltas[1:])  
 best_t = [i for i, val in enumerate(deltas) if val == best_delta][0] 
 idx_poison_found = poison_found[best_t]
@@ -338,8 +336,25 @@ data_to_save = {
 torch.save(data_to_save, args.pre_train_param)
 
 
+
 test_model1 = model_construct(args, args.test_model, data, device).to(device)
-test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune2=True, attach=idx_poison_found, clean=idx_clean_found,target_label=target_label, gamma=args.gamma)
+#Decoupling-Forgetting
+test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune2=True, attach=idx_poison_found, clean=idx_clean_found,target_label=target_label, alpha=args.gamma)
+
+# # RIGBD Robust Training
+# test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune1=True)   
+
+# #Discarding Target Nodes/Only use Clean nodes                                                                       
+# test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune3=True, clean=idx_clean_found)   
+
+# # SCRUB Unlearning              
+# test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune4=True, attach=idx_poison_found, clean=idx_clean_found, teacher_model=test_model)
+
+# # Restroing Original Label
+# test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune5=True, attach=idx_poison_found, clean=idx_clean_found, clean_labels=data.y)
+
+# # Feature Reinitialization
+# test_model1.fit(poison_x, train_edge_index, None, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune6=True, attach=idx_poison_found, attach_feature=data.x)
 
 induct_edge_index = torch.cat([poison_edge_index, mask_edge_index], dim=1)
 induct_edge_weights = torch.cat([
@@ -378,3 +393,80 @@ fpr = FP / (FP + TN + 1e-8)
 print(f"Precision: {precision:.4f}")
 print(f"Recall: {recall:.4f}")
 print(f"FPR: {fpr:.4f}")
+
+
+
+# results_stage1 = {
+#     "ASR": round(flip_asr * 100, 2),
+#     "CleanACC": round(clean_acc * 100, 2),
+#     "Precision": round(precision * 100, 2),
+#     "Recall": round(recall * 100, 2),
+#     "FPR": round(fpr * 100, 2),
+#     "split_lr": args.split_lr,
+#     "split_epoch": args.split_epoch,
+# }
+
+# df = pd.DataFrame([results_stage1])
+
+# output_file = f"SPEAR_{args.dataset}_TS_ηS.csv"
+# df.to_csv(output_file, mode='a', index=False, header=not os.path.exists(output_file))
+
+
+# results_stage2 = []
+
+
+# test_model1 = model_construct(args, args.test_model, data, device).to(device)
+
+# test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune2=True, attach=idx_poison_found, clean=idx_clean_found,target_label=target_label, gamma=args.gamma)
+
+# induct_edge_index = torch.cat([poison_edge_index, mask_edge_index], dim=1)
+# induct_edge_weights = torch.cat([
+#     poison_edge_weights,
+#     torch.ones([mask_edge_index.shape[1]], dtype=torch.float, device=device)
+# ])
+# clean_acc = test_model1.test(poison_x, induct_edge_index, induct_edge_weights, data.y, idx_clean_test)
+
+# induct_x, induct_edge_index, induct_edge_weights = model.inject_trigger(
+#     idx_atk, poison_x, induct_edge_index, induct_edge_weights, device
+# )
+# induct_x, induct_edge_index, induct_edge_weights = (
+#     induct_x.clone().detach(), induct_edge_index.clone().detach(), induct_edge_weights.clone().detach()
+# )
+
+# output = test_model1(induct_x, induct_edge_index, induct_edge_weights)
+# flip_idx_atk = idx_atk[(data.y[idx_atk] != args.target_class).nonzero().flatten()]
+# flip_asr = (output.argmax(dim=1)[flip_idx_atk] == args.target_class).detach().cpu().numpy().mean()
+# print(f"****γ={args.gamma}:****")
+# print("ASR: {:.6f}/{} nodes".format(flip_asr,flip_idx_atk.shape[0]))
+# print("Clean Accuracy: {:.6f}".format(clean_acc)) 
+
+# poison_common = set(idx_poison_found.tolist()) & set(idx_attach.tolist())
+# clean_common = set(idx_clean_found.tolist()) & set(idx_train.tolist())
+# TP = len(poison_common)
+# FP = len(idx_poison_found) - TP
+# FN = len(idx_attach) - TP
+# TN = len(clean_common)
+
+# precision = TP / (TP + FP + 1e-8)
+# recall = TP / (TP + FN + 1e-8)
+# fpr = FP / (FP + TN + 1e-8)
+
+# print(f"Precision: {precision:.4f}")
+# print(f"Recall: {recall:.4f}")
+# print(f"FPR: {fpr:.4f}")
+
+# results_stage2.append({
+#     "gamma": args.gamma,
+#     "ASR (%)": flip_asr * 100,
+#     "CleanACC (%)": clean_acc * 100,
+#     "Precision": precision,
+#     "Recall": recall,
+#     "FPR": fpr
+# })
+# import pandas as pd
+# import os
+# df2 = pd.DataFrame(results_stage2).round(4)
+
+# output_file = f"UGBA_{args.dataset}_γ.csv"
+# df2.to_csv(output_file, mode='a', index=False, header=not os.path.exists(output_file))
+
