@@ -1,4 +1,4 @@
-# LoSplit: Loss-Guided Dynamic Split for Training-Time Defense Against Graph Backdoor Attacks [NeurIPS 25 Poster]
+# LoSplit: Loss-Guided Dynamic Split for Training-Time Defense Against Graph Backdoor Attacks [NeurIPS 25 Poster][paper](https://openreview.net/forum?id=3Cpw7YftBm)
 This repository provides the implementation of **LoSplit**, the first training-time defense for mitigating graph backdoor attacks. Our method supports various attack settings, including **GTA**, **UGBA**, **DPGBA**, and **SPEAR**.
 
 ## 🚀 Reproducing Results
