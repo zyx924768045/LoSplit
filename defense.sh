@@ -17,7 +17,7 @@ python GTA_LoSplit.py --dataset=Citeseer --vs_number=43 --trigger_generator_addr
 python GTA_LoSplit.py --dataset=Pubmed --vs_number=201 --trigger_generator_address=./weights/GTA/Pubmed/GTA_Pubmed_weights.pth --pre_train_param=./weights/GTA/Pubmed/GTA_Pubmed.pt --split_lr=0.005 --split_epoch=15 --gamma=0.55
 python GTA_LoSplit.py --dataset=Physics --vs_number=200 --trigger_generator_address=./weights/GTA/Physics/GTA_Physics_weights.pth --pre_train_param=./weights/GTA/Physics/GTA_Physics.pt --split_lr=0.00001 --split_epoch=20 --gamma=0.55
 python GTA_LoSplit.py --dataset=Flickr --vs_number=167 --trigger_generator_address=./weights/GTA/Flickr/GTA_Flickr_weights.pth --pre_train_param=./weights/GTA/Flickr/GTA_Flickr.pt --split_lr=0.03 --split_epoch=10 --gamma=0.05
-python GTA_LoSplit.py --dataset=ogbn-arxiv --vs_number=569 --trigger_generator_address=./weights/GTA/OGB-arXiv/GTA_ogbn_arxiv_weights.pth --pre_train_param=./weights/GTA/OGB-arXiv/GTA_ogbn_arxiv.pt --hidden=128 --split_lr=0.03 --split_epoch=15 --gamma=0.7
+python GTA_LoSplit.py --dataset=ogbn-arxiv --vs_number=569 --trigger_generator_address=./weights/GTA/OGB-arXiv/GTA_ogbn_arxiv_weights.pth --pre_train_param=./weights/GTA/OGB-arXiv/GTA_ogbn_arxiv.pt --hidden=128 --split_lr=0.03 --split_epoch=15 --gamma=0.0
 
 # UGBA
 python UGBA_LoSplit.py --dataset=Cora --vs_number=44 --homo_loss_weight=50 --homo_boost_thrd=0.5 --trigger_generator_address=./weights/UGBA/Cora/UGBA_Cora_weights.pth --pre_train_param=./weights/UGBA/Cora/UGBA_Cora.pt --split_lr=0.01 --split_epoch=15 --gamma=0.2
