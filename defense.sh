@@ -24,7 +24,7 @@ python UGBA_LoSplit.py --dataset=Cora --vs_number=44 --homo_loss_weight=50 --hom
 python UGBA_LoSplit.py --dataset=Citeseer --vs_number=42 --homo_loss_weight=150 --homo_boost_thrd=0.3 --trigger_generator_address=./weights/UGBA/Citeseer/UGBA_Citeseer_weights.pth --pre_train_param=./weights/UGBA/Citeseer/UGBA_Citeseer.pt --split_lr=0.01 --split_epoch=10 --gamma=0.45
 python UGBA_LoSplit.py --dataset=Pubmed --vs_number=162 --homo_loss_weight=100 --homo_boost_thrd=0.5 --trigger_generator_address=./weights/UGBA/Pubmed/UGBA_Pubmed_weights.pth --pre_train_param=./weights/UGBA/Pubmed/UGBA_Pubmed.pt --split_lr=0.03 --split_epoch=15 --gamma=0
 python UGBA_LoSplit.py --dataset=Physics --vs_number=394 --hidden=64 --homo_loss_weight=200 --homo_boost_thrd=0.8 --trigger_generator_address=./weights/UGBA/Physics/UGBA_Physics_weights.pth --pre_train_param=./weights/UGBA/Physics/UGBA_Physics.pt --split_lr=0.001 --split_epoch=10 --gamma=0
-python UGBA_LoSplit.py --dataset=Flickr --vs_number=169 --homo_loss_weight=100 --homo_boost_thrd=0.5 --trigger_generator_address=./weights/UGBA/Flickr/UGBA_Flickr_weights.pth --pre_train_param=./weights/UGBA/Flickr/UGBA_Flickr.pt --split_lr=0.01 --split_epoch=15 --gamma=0.6
+python UGBA_LoSplit.py --dataset=Flickr --vs_number=169 --homo_loss_weight=100 --homo_boost_thrd=0.5 --trigger_generator_address=./weights/UGBA/Flickr/UGBA_Flickr_weights.pth --pre_train_param=./weights/UGBA/Flickr/UGBA_Flickr.pt --split_lr=0.01 --split_epoch=15 --gamma=0.0
 python UGBA_LoSplit.py --dataset=ogbn-arxiv --vs_number=565 --homo_loss_weight=200 --homo_boost_thrd=0.8 --trigger_generator_address=./weights/UGBA/OGB-arXiv/UGBA_ogbn_arxiv_weights.pth --pre_train_param=./weights/UGBA/OGB-arXiv/UGBA_ogbn_arxiv.pt --trojan_epoch=800 --epoch=800 --split_lr=0.03 --split_epoch=15 --gamma=0.05
 
 # DPGBA
@@ -42,7 +42,7 @@ python SPEAR_LoSplit.py --dataset=Citeseer --homo_loss_weight=0.05 --target_loss
 python SPEAR_LoSplit.py --dataset=Pubmed --homo_loss_weight=0.15 --vs_number=222 --test_model=GCN --defense_mode=none --epochs=200 --trojan_epochs=200 --alpha_int=10 --hidden=64 --target_class=2 --shadow_lr=0.005 --trojan_lr=0.005 --trigger_generator_address=./weights/SPEAR/Pubmed/SPEAR_Pubmed_weights.pth --pre_train_param=./weights/SPEAR/Pubmed/SPEAR_Pubmed.pt --split_lr=0.03 --split_epoch=15 --gamma=0.8
 python SPEAR_LoSplit.py --dataset=Physics --vs_number=207 --homo_loss_weight=0.15  --test_model=GCN --defense_mode=none --epochs=200 --trojan_epochs=200 --alpha_int=15 --hidden=64 --target_class=0 --shadow_lr=0.0005 --trojan_lr=0.0005 --trigger_generator_address=./weights/SPEAR/Physics/GTA_Physics_weights.pth --pre_train_param=./weights/SPEAR/Physics/SPEAR_Physics.pt --split_lr=0.001 --split_epoch=20 --gamma=0.7
 python SPEAR_LoSplit.py --dataset=Flickr --vs_number=166 --homo_loss_weight=0.15  --test_model=GCN --defense_mode=none --epochs=200 --trojan_epochs=200 --alpha_int=15 --hidden=64 --target_class=0 --shadow_lr=0.005 --trojan_lr=0.005 --trigger_generator_address=./weights/SPEAR/Flickr/SPEAR_Flickr_weights.pth --pre_train_param=./weights/SPEAR/Flickr/SPEAR_Flickr.pt --split_lr=0.003 --split_epoch=10 --gamma=0.9
-python SPEAR_LoSplit.py --dataset=ogbn-arxiv --homo_loss_weight=0 --vs_number=579 --test_model=GCN --defense_mode=none --epochs=800 --trojan_epochs=800 --alpha_int=5 --hidden=80 --outter_size=256 --shadow_lr=0.01 --trojan_lr=0.01 --train_lr=0.02 --trigger_generator_address=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn_arxiv_weights.pth --pre_train_param=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn-arxiv.pt --split_lr=0.1 --split_epoch=15 --gamma=0.8
+python SPEAR_LoSplit.py --dataset=ogbn-arxiv --homo_loss_weight=0 --vs_number=579 --test_model=GCN --defense_mode=none --epochs=800 --trojan_epochs=800 --alpha_int=5 --hidden=80 --outter_size=256 --shadow_lr=0.01 --trojan_lr=0.01 --train_lr=0.02 --trigger_generator_address=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn_arxiv_weights.pth --pre_train_param=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn-arxiv.pt --split_lr=0.1 --split_epoch=15 --gamma=1.0
 
 
 
@@ -58,6 +58,6 @@ done
 
 for gamma in 0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1; do                                                         
   echo ">>> Running with gamma=$gamma"                      
-  python SPEAR_LoSplit.py --dataset=ogbn-arxiv --homo_loss_weight=0 --vs_number=579 --test_model=GCN --defense_mode=none --epochs=800 --trojan_epochs=800 --alpha_int=5 --hidden=80 --outter_size=256 --shadow_lr=0.01 --trojan_lr=0.01 --train_lr=0.02 --trigger_generator_address=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn_arxiv_weights.pth --pre_train_param=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn-arxiv.pt --split_lr=0.1 --split_epoch=15 --gamma=$gamma
+  python UGBA_LoSplit.py --dataset=Flickr --vs_number=169 --homo_loss_weight=100 --homo_boost_thrd=0.5 --trigger_generator_address=./weights/UGBA/Flickr/UGBA_Flickr_weights.pth --pre_train_param=./weights/UGBA/Flickr/UGBA_Flickr.pt --split_lr=0.01 --split_epoch=15 --gamma=$gamma
 done                                                   
 
