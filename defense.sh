@@ -25,7 +25,7 @@ python UGBA_LoSplit.py --dataset=Citeseer --vs_number=42 --homo_loss_weight=150 
 python UGBA_LoSplit.py --dataset=Pubmed --vs_number=162 --homo_loss_weight=100 --homo_boost_thrd=0.5 --trigger_generator_address=./weights/UGBA/Pubmed/UGBA_Pubmed_weights.pth --pre_train_param=./weights/UGBA/Pubmed/UGBA_Pubmed.pt --split_lr=0.03 --split_epoch=15 --gamma=0
 python UGBA_LoSplit.py --dataset=Physics --vs_number=394 --hidden=64 --homo_loss_weight=200 --homo_boost_thrd=0.8 --trigger_generator_address=./weights/UGBA/Physics/UGBA_Physics_weights.pth --pre_train_param=./weights/UGBA/Physics/UGBA_Physics.pt --split_lr=0.001 --split_epoch=10 --gamma=0
 python UGBA_LoSplit.py --dataset=Flickr --vs_number=169 --homo_loss_weight=100 --homo_boost_thrd=0.5 --trigger_generator_address=./weights/UGBA/Flickr/UGBA_Flickr_weights.pth --pre_train_param=./weights/UGBA/Flickr/UGBA_Flickr.pt --split_lr=0.01 --split_epoch=15 --gamma=0.6
-python UGBA_LoSplit.py --dataset=ogbn-arxiv --vs_number=565 --homo_loss_weight=200 --homo_boost_thrd=0.8 --trigger_generator_address=./weights/UGBA/OGB-arXiv/UGBA_ogbn_arxiv_weights.pth --pre_train_param=./weights/UGBA/OGB-arXiv/UGBA_ogbn_arxiv.pt --trojan_epoch=800 --epoch=800 --split_lr=0.03 --split_epoch=15 --gamma=0.7
+python UGBA_LoSplit.py --dataset=ogbn-arxiv --vs_number=565 --homo_loss_weight=200 --homo_boost_thrd=0.8 --trigger_generator_address=./weights/UGBA/OGB-arXiv/UGBA_ogbn_arxiv_weights.pth --pre_train_param=./weights/UGBA/OGB-arXiv/UGBA_ogbn_arxiv.pt --trojan_epoch=800 --epoch=800 --split_lr=0.03 --split_epoch=15 --gamma=0.05
 
 # DPGBA
 python ./DPGBA/DPGBA_LoSplit.py --dataset=Cora --vs_number=50 --k=50 --hidden=32 --weight_target=1 --weight_ood=1 --weight_targetclass=2 --train_lr=0.015 --lr=0.015 --target_class=0 --trojan_epochs=300 --trigger_generator_address=./weights/DPGBA/Cora/DPGBA_Cora_weights.pth --pre_train_param=./weights/DPGBA/Cora/DPGBA_Cora.pt --split_lr=0.01 --split_epoch=15 --gamma=1.0
@@ -58,6 +58,6 @@ done
 
 for gamma in 0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1; do                                                         
   echo ">>> Running with gamma=$gamma"                      
-  python ./DPGBA/DPGBA_LoSplit.py --dataset=Citeseer --vs_number=45 --k=50 --hidden=32 --weight_target=1 --weight_ood=1 --weight_targetclass=2 --train_lr=0.015 --lr=0.015 --target_class=0 --trojan_epochs=300 --trigger_generator_address=./weights/DPGBA/Citeseer/DPGBA_Citeseer_weights.pth --pre_train_param=./weights/DPGBA/Citeseer/DPGBA_Citeseer.pt --split_lr=0.01 --split_epoch=10 --gamma=$gamma
+  python SPEAR_LoSplit.py --dataset=ogbn-arxiv --homo_loss_weight=0 --vs_number=579 --test_model=GCN --defense_mode=none --epochs=800 --trojan_epochs=800 --alpha_int=5 --hidden=80 --outter_size=256 --shadow_lr=0.01 --trojan_lr=0.01 --train_lr=0.02 --trigger_generator_address=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn_arxiv_weights.pth --pre_train_param=./weights/SPEAR/OGB-arXiv/SPEAR_ogbn-arxiv.pt --split_lr=0.1 --split_epoch=15 --gamma=$gamma
 done                                                   
 
