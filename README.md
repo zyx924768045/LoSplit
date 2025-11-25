@@ -17,3 +17,15 @@ bash defense.sh [--device_id=]
 - if you want to specify the device for a specific task,you should modify the device_id in the `defense.sh` file.
 
 This Implementation is built upon [SPEAR](github.com/yhDing/SPEAR)
+
+If you find this repo helful, please cite our paper. Thank you.
+
+```bibtex
+@inproceedings{
+  zhang2025robustness,
+  title={Robustness Inspired Graph Backdoor Defense},
+  author={Zhiwei Zhang and Minhua Lin and Junjie Xu and Zongyu Wu and Enyan Dai and Suhang War},
+  booktitle={The Thirteenth International Conference on Learning Representations},
+  year={2025},
+  url={https://openreview.net/forum?id=trKNi4IUiP}
+}
