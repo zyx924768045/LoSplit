@@ -2,7 +2,7 @@
 This repository provides the implementation of **LoSplit**, the first training-time defense for mitigating graph backdoor attacks. Our method supports various attack settings, including **GTA**, **UGBA**, **DPGBA**, and **SPEAR**.
 
 ## 🚀 Reproducing Results
-1. To fetch the weights and pre-training parameters please contact me via WeChat: zyx924768045
+1. To fetch all the weights and pre-training parameters please contact me via WeChat: zyx924768045
 
 2. Modify the address for these **2** args: '**(1) --trigger_generator_address**', '(2) **--pre_train_param (induding poison_x, poison_edge_index, poison_edge_weights, poison_labels, idx_poison_found, idx_clean_found, target_label)**'
 
