@@ -16,7 +16,7 @@ bash defense.sh [--device_id=]
 
 - if you want to specify the device for a specific task,you should modify the device_id in the `defense.sh` file.
 
-This Implementation is built upon [SPEAR](github.com/yhDing/SPEAR)
+This Implementation is built upon [SPEAR](https://github.com/yhDing/SPEAR)
 
 If you find this repo helful, please cite our paper. Thank you.
 
