@@ -8,9 +8,14 @@ This repository provides the implementation of **LoSplit**, the first training-t
 
 To reproduce the results reported in the paper, run the following scripts:
 
-bash install.sh
-bash defense.sh [--device_id=]
 
+```bash
+bash install.sh
+```
+
+```bash
+bash defense.sh [--device_id=]
+```
 
 - If you want to run the code on a specific GPU, specify it via the optional argument `--device_id=`
 
