@@ -220,10 +220,10 @@ edge_weight = torch.ones([data.edge_index.shape[1]],device=device,dtype=torch.fl
 
 
 model = Backdoor(args,device)
-# model.fit(data.x, train_edge_index, None, data.y, idx_train,idx_attach, unlabeled_idx)
-# torch.save(model.trojan.state_dict(), args.trigger_generator_address)
+model.fit(data.x, train_edge_index, None, data.y, idx_train,idx_attach, unlabeled_idx)
+torch.save(model.trojan.state_dict(), args.trigger_generator_address)
 
-model.fit(data.x, train_edge_index, None, data.y, idx_train, idx_attach, unlabeled_idx, args.trigger_generator_address, True)
+# model.fit(data.x, train_edge_index, None, data.y, idx_train, idx_attach, unlabeled_idx, args.trigger_generator_address, True)
 poison_x, poison_edge_index, poison_edge_weights, poison_labels = model.get_poisoned()
 
 if(args.defense_mode == 'prune'):
