@@ -232,10 +232,10 @@ unlabeled_idx = torch.tensor(list(set(unlabeled_idx.cpu().numpy()) - set(idx_att
 # train trigger generator 
 model = Backdoor(args,device)
 
-# model.fit(data.x, train_edge_index, None, data.y, idx_train,idx_attach, unlabeled_idx)
+model.fit(data.x, train_edge_index, None, data.y, idx_train,idx_attach, unlabeled_idx)
 # torch.save(model.trojan.state_dict(), args.trigger_generator_address)
 
-model.fit(data.x, train_edge_index, None, data.y, idx_train, idx_attach, unlabeled_idx, args.trigger_generator_address, True)
+# model.fit(data.x, train_edge_index, None, data.y, idx_train, idx_attach, unlabeled_idx, args.trigger_generator_address, True)
 poison_x, poison_edge_index, poison_edge_weights, poison_labels = model.get_poisoned()
 
 
@@ -339,7 +339,7 @@ torch.save(data_to_save, args.pre_train_param)
 
 test_model1 = model_construct(args, args.test_model, data, device).to(device)
 #Decoupling-Forgetting
-test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune2=True, attach=idx_poison_found, clean=idx_clean_found,target_label=target_label, alpha=args.gamma)
+test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune2=True, attach=idx_poison_found, clean=idx_clean_found,target_label=target_label, gamma=args.gamma)
 
 # # RIGBD Robust Training
 # test_model1.fit(poison_x, poison_edge_index, poison_edge_weights, poison_labels, bkd_tn_nodes, idx_val, train_iters=200, verbose=False, finetune1=True)   
