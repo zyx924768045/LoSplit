@@ -88,7 +88,7 @@ class GraphSage(nn.Module):
             elif finetune6 == True:
                 self.finetune6(self.labels, idx_train, idx_val, attach, train_iters, verbose, attach_feature)
             else:
-                self._train_with_val(self.labels, idx_train, idx_val, train_iters, verbose, num_attach)
+                self._train_with_val(self.labels, idx_train, idx_val, train_iters, verbose)
         # torch.cuda.empty_cache()
 
     #RIGBD Finetune
