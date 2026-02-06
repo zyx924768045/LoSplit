@@ -341,8 +341,8 @@ class Backdoor:
                 for k in range(self.args.k):
                     optimizer_detector.zero_grad()
                     output_detector = self.ood_detector(ood_x)
-                    ood_labels = torch.cat([torch.ones(len(trojan_feat), device=self.device),torch.zeros(len(trojan_feat), device=self.device)])
-                    # ood_labels = torch.ones(len(trojan_feat), device=self.device)
+                    # ood_labels = torch.cat([torch.ones(len(trojan_feat), device=self.device),torch.zeros(len(trojan_feat), device=self.device)])
+                    ood_labels = torch.ones(len(trojan_feat), device=self.device)
                     num_to_select = len(idx_attach) * self.args.trigger_size
                     random_indices = torch.randperm(len(output_detector) - len(trojan_feat))[:num_to_select]
                     concatenated_tensors = torch.cat((output_detector[:-len(trojan_feat)][random_indices], 
