@@ -65,8 +65,8 @@ class GAT(nn.Module):
             std = torch.where(std == 0, torch.ones_like(std), std)
             x = (x - mean) / std
         return x
-
-    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, initialize=True, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, attach=None, clean=None, target_label=0, num_attach=0):
+    
+    def fit(self, features, edge_index, edge_weight, labels, idx_train, idx_val=None, train_iters=200, initialize=True, verbose=False, finetune1=False, finetune2=False, finetune3=False, finetune4=False, finetune5=False, finetune6=False, attach=None, clean=None, target_label=0, num_attach=40, gamma=0.7, teacher_model=None, clean_labels=None, attach_feature=None):
         if initialize:
             self.initialize()
         self.edge_index, self.edge_weight = edge_index, edge_weight
@@ -80,11 +80,15 @@ class GAT(nn.Module):
             if finetune1==True:
                 self.finetune1(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose)
             elif finetune2 == True:
-                self.finetune2(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label)
+                self.finetune2(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label, gamma)
             elif finetune3 == True:
-                self.finetune3(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label)
+                self.finetune3(self.labels, idx_train, idx_val, clean, train_iters, verbose)
             elif finetune4 == True:
-                self.finetune4(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, target_label)
+                self.finetune4(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, teacher_model)
+            elif finetune5 == True:
+                self.finetune5(self.labels, idx_train, idx_val, attach, clean, train_iters, verbose, clean_labels)
+            elif finetune6 == True:
+                self.finetune6(self.labels, idx_train, idx_val, attach, train_iters, verbose, attach_feature)
             self._train_with_val(self.labels, idx_train, idx_val, train_iters, verbose)
 
     #RIGBD Finetune
@@ -117,7 +121,7 @@ class GAT(nn.Module):
         self.output = output
     
     #LoSplit Finetune
-    def finetune2(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label):
+    def finetune2(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label, gamma):
         num_classes=labels.max().item() + 1
         mask = torch.zeros_like(labels, dtype=torch.bool)
         mask[idx_attach] = 1  
@@ -131,11 +135,12 @@ class GAT(nn.Module):
             self.train()
             optimizer.zero_grad()
             output = self.forward(self.features, self.edge_index, self.edge_weight)
-            loss_attach_unlearn = -1 * F.nll_loss(output[idx_attach], labels[idx_attach], reduction='none')
-            loss_attach_unlearn = torch.relu(loss_attach_unlearn)
+            loss_attach_forget = -1 * F.nll_loss(output[idx_attach], labels[idx_attach], reduction='none')
+            loss_attach_forget = torch.relu(loss_attach_forget)
             loss_attach_decouple =  F.nll_loss(output[idx_attach], reshuffle_labels[idx_attach], reduction='none')
             loss_clean = F.nll_loss(output[idx_clean], labels[idx_clean], reduction='none')
-            loss_attach = loss_attach_decouple + loss_attach_unlearn
+
+            loss_attach = gamma * loss_attach_decouple + (1-gamma) * loss_attach_forget
 
             loss_train = torch.cat([loss_clean, loss_attach])
             loss_train = torch.mean(loss_train)
@@ -161,21 +166,90 @@ class GAT(nn.Module):
         self.eval()
         self.output = output
     
-    #Without Unlearning
-    def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label):
-        num_classes=labels.max().item() + 1
-        mask = torch.zeros_like(labels, dtype=torch.bool)
-        mask[idx_attach] = 1  
-        choices = torch.tensor([i for i in range(num_classes) if i != target_label])
-        random_replacements = choices[torch.randint(0, len(choices), size=(mask.sum(),))]
-        labels[mask] = random_replacements        
+   #Discarding Target Nodes/Only use Clean nodes 
+    def finetune3(self, labels, idx_train, idx_val, idx_clean, train_iters, verbose):
         optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         for i in range(train_iters):
             self.train()
             optimizer.zero_grad()
             output = self.forward(self.features, self.edge_index, self.edge_weight)
-            loss_train = F.nll_loss(output[idx_train], labels[idx_train], reduction='none')
-            loss_train = torch.mean(loss_train)
+
+            loss_train = F.nll_loss(output[idx_clean], labels[idx_clean])
+            loss_train.backward()
+            optimizer.step()
+        self.eval()
+        self.output = output
+    
+    #SCRUB Unlearning
+    def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, teacher_model):
+        """
+        SCRUB unlearning
+        """
+        with torch.no_grad():
+            teacher_model.eval()
+            teacher_output = teacher_model.forward(self.features, self.edge_index, self.edge_weight)
+            teacher_probs_clean = F.softmax(teacher_output[idx_clean], dim=1)
+            teacher_probs_attach = F.softmax(teacher_output[idx_attach], dim=1)
+        
+        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        
+        for epoch in range(10):
+            for step in range(1): 
+                self.train()
+                optimizer.zero_grad()
+                
+                student_output = self.forward(self.features, self.edge_index, self.edge_weight)
+                student_probs_attach = F.log_softmax(student_output[idx_attach], dim=1)
+                
+                max_loss = -F.kl_div(student_probs_attach, teacher_probs_attach, reduction='batchmean')
+                
+                max_loss.backward()
+                optimizer.step()
+            
+            for step in range(800): 
+                self.train()
+                optimizer.zero_grad()
+                
+                student_output = self.forward(self.features, self.edge_index, self.edge_weight)
+                student_probs_clean = F.log_softmax(student_output[idx_clean], dim=1)
+
+                kl_clean = F.kl_div(student_probs_clean, teacher_probs_clean, reduction='batchmean')
+                task_loss = F.nll_loss(student_output[idx_clean], labels[idx_clean])
+                
+                min_loss = 0.5*kl_clean + 0.5*task_loss
+                
+                min_loss.backward()
+                optimizer.step()
+        
+        self.eval()
+        output = self.forward(self.features, self.edge_index, self.edge_weight)
+        self.output = output
+    
+    #Restore Original Label
+    def finetune5(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, clean_labels):
+        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        for i in range(train_iters): 
+            self.train()
+            optimizer.zero_grad()
+            output= self.forward(self.features, self.edge_index, self.edge_weight)
+
+            loss_train = F.nll_loss(output[idx_train], clean_labels[idx_train])
+            loss_train.backward()
+            optimizer.step()
+
+        self.eval()
+        self.output = output
+
+    #Feature Reinitialization
+    def finetune6(self, labels, idx_train, idx_attach, idx_val, train_iters, verbose, attach_feature):
+        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        for i in range(train_iters): 
+            self.train()
+            optimizer.zero_grad()
+            output= self.forward(attach_feature, self.edge_index, self.edge_weight)
+
+
+            loss_train = F.nll_loss(output[idx_train], labels[idx_train])
             loss_train.backward()
             optimizer.step()
 
