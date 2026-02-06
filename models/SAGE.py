@@ -164,27 +164,6 @@ class GraphSage(nn.Module):
         self.eval()
         self.output = output
     
-    #Without Unlearning
-    def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, target_label):
-        num_classes=labels.max().item() + 1
-        mask = torch.zeros_like(labels, dtype=torch.bool)
-        mask[idx_attach] = 1  
-        choices = torch.tensor([i for i in range(num_classes) if i != target_label])
-        random_replacements = choices[torch.randint(0, len(choices), size=(mask.sum(),))]
-        labels[mask] = random_replacements        
-        optimizer = optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        for i in range(train_iters):
-            self.train()
-            optimizer.zero_grad()
-            output = self.forward(self.features, self.edge_index, self.edge_weight)
-            loss_train = F.nll_loss(output[idx_train], labels[idx_train], reduction='none')
-            loss_train = torch.mean(loss_train)
-            loss_train.backward()
-            optimizer.step()
-
-        self.eval()
-        self.output = output
-    
     #SCRUB Unlearning
     def finetune4(self, labels, idx_train, idx_val, idx_attach, idx_clean, train_iters, verbose, teacher_model):
         """
